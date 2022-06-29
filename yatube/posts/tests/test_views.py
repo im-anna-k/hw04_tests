@@ -116,3 +116,21 @@ class PostPagesTests(TestCase):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
                 self.assertEqual(response.context['is_edit'], True)
+
+    def test_check_post_on_create(self):
+        """Проверка, что пост добавляется при указании группы."""
+        post = Post.objects.create(
+            text='текст',
+            author=PostPagesTests.user,
+            group=PostPagesTests.group,
+        )
+        pages = {
+            reverse('posts:index'),
+            reverse('posts:group_list', kwargs={'slug': self.group.slug}),
+            reverse('posts:profile', kwargs={'username': self.user}),
+        }
+        for page in pages:
+            with self.subTest(page=page):
+                response = self.authorized_client.get(page)
+                self.assertEqual(response.context.get('page_obj')[0],
+                                 post)

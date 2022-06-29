@@ -75,5 +75,6 @@ class PostsURLTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_urls_404(self):
+        """404, если несуществующая страница."""
         response = self.authorized_client.get('/smth/')
         self.assertEqual(response.status_code, 404)
