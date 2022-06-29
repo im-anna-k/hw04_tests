@@ -19,7 +19,7 @@ class PostPagesTests(TestCase):
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый текст',
+            text='текст',
             group=cls.group
         )
 
