@@ -50,6 +50,7 @@ class PostFormsTest(TestCase):
 
         posts_count = Post.objects.count()
         form_data = {
+            'author': self.user,
             'text': 'отредактированный текст',
             'group': self.group.id,
         }
