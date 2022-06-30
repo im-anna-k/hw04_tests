@@ -20,7 +20,8 @@ class PostPagesTests(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='текст',
-            group=cls.group
+            group=cls.group,
+            id=2
         )
 
     def setUp(self):
@@ -123,6 +124,7 @@ class PostPagesTests(TestCase):
             text='текст',
             author=PostPagesTests.user,
             group=PostPagesTests.group,
+            id=1
         )
         pages = [
             reverse('posts:index'),
@@ -133,4 +135,4 @@ class PostPagesTests(TestCase):
             with self.subTest(page=page):
                 response = self.authorized_client.get(page)
                 self.assertEqual(response.context.get('page_obj')[0],
-                                 post)
+                                 post, f'{self.post.id}')
