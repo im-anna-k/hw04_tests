@@ -124,11 +124,11 @@ class PostPagesTests(TestCase):
             author=PostPagesTests.user,
             group=PostPagesTests.group,
         )
-        pages = {
+        pages = [
             reverse('posts:index'),
             reverse('posts:group_list', kwargs={'slug': self.group.slug}),
             reverse('posts:profile', kwargs={'username': self.user}),
-        }
+        ]
         for page in pages:
             with self.subTest(page=page):
                 response = self.authorized_client.get(page)
