@@ -1,11 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 from django import forms
 
-from posts.models import Post, Group
-
-User = get_user_model()
+from posts.models import Post, Group, User
 
 
 class PostPagesTests(TestCase):
@@ -20,8 +17,7 @@ class PostPagesTests(TestCase):
         cls.post = Post.objects.create(
             author=cls.user,
             text='текст',
-            group=cls.group,
-            id=2
+            group=cls.group
         )
 
     def setUp(self):
@@ -33,7 +29,7 @@ class PostPagesTests(TestCase):
         """URL-адрес использует соответствующий шаблон."""
         templates_pages_names = {
             reverse('posts:index'): 'posts/index.html',
-            reverse('posts:group_list', kwargs={'slug': 'test-slug'}):
+            reverse('posts:group_list', kwargs={'slug': self.group.slug}):
             'posts/group_list.html',
             reverse('posts:profile', kwargs={
                 'username': self.post.author.username}):
@@ -61,7 +57,8 @@ class PostPagesTests(TestCase):
     def test_group_show_correct_context(self):
         """Тест контекста для group_list."""
         response = self.authorized_client.get(reverse('posts:group_list',
-                                              kwargs={'slug': 'test-slug'}))
+                                              kwargs={'slug':
+                                                      self.group.slug}))
         first_object = response.context['page_obj'][0]
         post_text_0 = first_object.text
         post_group_0 = first_object.group
@@ -120,12 +117,7 @@ class PostPagesTests(TestCase):
 
     def test_check_post_on_create(self):
         """Проверка, что пост добавляется при указании группы."""
-        post = Post.objects.create(
-            text='текст',
-            author=PostPagesTests.user,
-            group=PostPagesTests.group,
-            id=1
-        )
+        post = self.post
         pages = [
             reverse('posts:index'),
             reverse('posts:group_list', kwargs={'slug': self.group.slug}),

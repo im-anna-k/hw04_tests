@@ -1,10 +1,6 @@
 from django.test import Client, TestCase
-from django.contrib.auth import get_user_model
 from django.urls import reverse
-from posts.models import Group, Post
-
-
-User = get_user_model()
+from posts.models import Group, Post, User
 
 
 class PostFormsTest(TestCase):
@@ -24,7 +20,7 @@ class PostFormsTest(TestCase):
         )
 
     def setUp(self):
-        self.user = User.objects.get(username='auth')
+        self.user = self.author
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -39,15 +35,14 @@ class PostFormsTest(TestCase):
         response = self.authorized_client.post(reverse('posts:post_create'),
                                                data=form_data, follow=True)
         self.assertRedirects(response,
-                             reverse('posts:profile', kwargs={'username':
-                                                              'auth'}))
+                             reverse('posts:profile',
+                                     kwargs={'username': self.user.username}))
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(Post.objects.filter(text='текст',
                                             author=self.user).exists())
 
     def test_edit_post(self):
         """Валидная форма редактировани поста."""
-
         posts_count = Post.objects.count()
         form_data = {
             'text': 'отредактированный текст',
@@ -55,7 +50,7 @@ class PostFormsTest(TestCase):
         }
         response = self.authorized_client.post(
             reverse(('posts:post_edit'),
-                    kwargs={'post_id': f'{self.post.id}'}),
+                    kwargs={'post_id': self.post.id}),
             data=form_data,
             follow=True
         )
