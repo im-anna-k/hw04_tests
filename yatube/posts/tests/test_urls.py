@@ -20,13 +20,8 @@ class PostsURLTests(TestCase):
 
     def setUp(self):
         self.guest_client = Client()
-        self.user = self.user
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
-
-    def test_homepage(self):
-        response = self.guest_client.get('/')
-        self.assertEqual(response.status_code, 200)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -54,13 +49,11 @@ class PostsURLTests(TestCase):
 
     def test_urls_create_auth(self):
         """Страница доступна авторизованному пользователю."""
-        response = self.authorized_client.get('/create/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
-
-    def test_urls_edit_auth(self):
-        """Редактирование поста доступно только автору поста."""
-        response = self.authorized_client.get(f'/posts/{self.post.id}/edit/')
-        self.assertEqual(response.status_code, HTTPStatus.OK)
+        responses = {
+            self.authorized_client.get('/create/'),
+            self.authorized_client.get(f'/posts/{self.post.id}/edit/')}
+        for response in responses:
+            self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_urls_404(self):
         """404, если несуществующая страница."""

@@ -43,7 +43,7 @@ class PostPagesTests(TestCase):
 
         for reverse_name, template in templates_pages_names.items():
             with self.subTest(template=template):
-                if template != '/posts/1/edit/':
+                if template != f'/posts/{self.post.id}/edit/':
                     response = self.authorized_client.get(reverse_name)
                     self.assertTemplateUsed(response, template)
 
@@ -51,8 +51,7 @@ class PostPagesTests(TestCase):
         """Тест контекста для index."""
         response = self.authorized_client.get(reverse('posts:index'))
         first_object = response.context['page_obj'][0]
-        post_text_0 = first_object.text
-        self.assertEqual(post_text_0, self.post.text)
+        self.assertEqual(first_object.text, self.post.text)
 
     def test_group_show_correct_context(self):
         """Тест контекста для group_list."""
@@ -60,10 +59,8 @@ class PostPagesTests(TestCase):
                                               kwargs={'slug':
                                                       self.group.slug}))
         first_object = response.context['page_obj'][0]
-        post_text_0 = first_object.text
-        post_group_0 = first_object.group
-        self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_group_0, self.post.group)
+        self.assertEqual(first_object.text, self.post.text)
+        self.assertEqual(first_object.group, self.post.group)
 
     def test_profile_show_correct_context(self):
         """Тест контекста для profile."""
@@ -72,10 +69,8 @@ class PostPagesTests(TestCase):
                                                       self.post.author.username
                                                       }))
         first_object = response.context['page_obj'][0]
-        post_text_0 = first_object.text
-        post_author_0 = first_object.author
-        self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_author_0, self.post.author)
+        self.assertEqual(first_object.text, self.post.text)
+        self.assertEqual(first_object.author, self.post.author)
 
     def test_detail_show_correct_context(self):
         """Тест контекста для detail."""
@@ -83,10 +78,9 @@ class PostPagesTests(TestCase):
                                               kwargs={'post_id':
                                                       self.post.id}))
         first_object = response.context['post']
-        post_text_0 = first_object.text
-        post_total_0 = first_object.author.posts.count()
-        self.assertEqual(post_text_0, self.post.text)
-        self.assertEqual(post_total_0, self.post.author.posts.count())
+        self.assertEqual(first_object.text, self.post.text)
+        self.assertEqual(first_object.author.posts.count(),
+                         self.post.author.posts.count())
 
     def test_create_show_correct_context(self):
         """Тест контекста для create."""
@@ -117,7 +111,6 @@ class PostPagesTests(TestCase):
 
     def test_check_post_on_create(self):
         """Проверка, что пост добавляется при указании группы."""
-        post = self.post
         pages = [
             reverse('posts:index'),
             reverse('posts:group_list', kwargs={'slug': self.group.slug}),
@@ -127,4 +120,4 @@ class PostPagesTests(TestCase):
             with self.subTest(page=page):
                 response = self.authorized_client.get(page)
                 self.assertEqual(response.context.get('page_obj')[0],
-                                 post, f'{self.post.id}')
+                                 self.post, f'{self.post.id}')

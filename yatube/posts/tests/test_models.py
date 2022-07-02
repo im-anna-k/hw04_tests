@@ -28,12 +28,25 @@ class PostModelTest(TestCase):
         exp_group = group.title
         self.assertEqual(exp_group, str(group))
 
-    def test_post_model_verbose_help(self):
-        '''Проверяем поля verbose и help_text.'''
+    def test_post_model_verbose(self):
+        '''Проверяем поле verbose.'''
         post = self.post
         fields = {
             post._meta.get_field('text').verbose_name: 'Текст поста',
+            post._meta.get_field('author').verbose_name: 'Автор',
+            post._meta.get_field('group').verbose_name: 'Группа',
             post._meta.get_field('text').help_text: 'Введите текст поста'
+        }
+        for field, text in fields.items():
+            with self.subTest():
+                self.assertEqual(field, text)
+
+    def test_post_model_help_text(self):
+        '''Проверяем поле help_text.'''
+        post = self.post
+        fields = {
+            post._meta.get_field('text').help_text: 'Введите текст поста',
+            post._meta.get_field('group').help_text: 'Выберите группу',
         }
         for field, text in fields.items():
             with self.subTest():

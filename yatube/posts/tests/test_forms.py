@@ -20,26 +20,25 @@ class PostFormsTest(TestCase):
         )
 
     def setUp(self):
-        self.user = self.author
         self.authorized_client = Client()
-        self.authorized_client.force_login(self.user)
+        self.authorized_client.force_login(self.author)
 
     def test_create_post(self):
         """Валидная форма создания поста."""
         posts_count = Post.objects.count()
         form_data = {
             'text': 'текст',
-            'author': self.user,
+            'author': self.author,
             'group': self.group.id
         }
         response = self.authorized_client.post(reverse('posts:post_create'),
                                                data=form_data, follow=True)
         self.assertRedirects(response,
                              reverse('posts:profile',
-                                     kwargs={'username': self.user.username}))
+                                     kwargs={'username': self.author.username}))
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(Post.objects.filter(text='текст',
-                                            author=self.user).exists())
+                                            author=self.author).exists())
 
     def test_edit_post(self):
         """Валидная форма редактировани поста."""
