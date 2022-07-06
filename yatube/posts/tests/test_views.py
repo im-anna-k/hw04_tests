@@ -155,14 +155,18 @@ class PostPagesTests(TestCase):
                 self.assertEqual(response.context.get('page_obj')[0],
                                  self.post, f'{self.post.id}')
 
-    def test_index_cache(self):
+    def test_index_cache_context(self):
         """Тест кеширования главной страницы"""
-        post_test = Post.objects.create(
+        response = self.client.get(reverse('posts:index'))
+        self.assertEqual(len(response.context['page_obj']), 1)
+        post = Post.objects.create(
             author=self.user,
             text='Текст поста в кеше',)
-
         response = self.client.get(reverse('posts:index'))
-        post_test.delete()
-        self.assertIn(response.content, post_test)
+        self.assertEqual(len(response.context['page_obj']), 1)
+        post.delete()
+        response = self.client.get(reverse('posts:index'))
+        self.assertEqual(len(response.context['page_obj']), 1)
         cache.clear()
-        self.assertIn(response.content, post_test)
+        response = self.client.get(reverse('posts:index'))
+        self.assertEqual(len(response.context['page_obj']), 1)

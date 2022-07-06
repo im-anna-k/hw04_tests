@@ -4,8 +4,9 @@
   Последние обновления на сайте
 {% endblock %} 
 {% block content %}
+ {% include 'posts/includes/switcher.html' %}
   {% for post in page_obj %}
-    <ul>
+   <ul>
       <li>Автор: {{ post.author.get_full_name }}
         <a href="{% url 'posts:profile' post.author.username %}">все посты пользователя</a>
       </li>
