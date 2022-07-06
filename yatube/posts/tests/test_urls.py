@@ -1,6 +1,13 @@
 from django.test import TestCase, Client
 from posts.models import Post, Group, User
 from http import HTTPStatus
+from django.core.cache import cache
+import shutil
+import tempfile
+from django.conf import settings
+
+
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 
 class PostsURLTests(TestCase):
@@ -18,10 +25,16 @@ class PostsURLTests(TestCase):
             group=cls.group
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""

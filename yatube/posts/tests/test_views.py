@@ -3,7 +3,9 @@ from django.urls import reverse
 from django import forms
 from django.conf import settings
 import tempfile
+import shutil
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.cache import cache
 
 from posts.models import Post, Group, User
 
@@ -41,10 +43,16 @@ class PostPagesTests(TestCase):
             image=cls.uploaded
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
+
     def setUp(self):
         self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+        cache.clear()
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -146,3 +154,15 @@ class PostPagesTests(TestCase):
                 response = self.authorized_client.get(page)
                 self.assertEqual(response.context.get('page_obj')[0],
                                  self.post, f'{self.post.id}')
+
+    def test_index_cache(self):
+        """Тест кеширования главной страницы"""
+        post_test = Post.objects.create(
+            author=self.user,
+            text='Текст поста в кеше',)
+
+        response = self.client.get(reverse('posts:index'))
+        post_test.delete()
+        self.assertIn(response.content, post_test)
+        cache.clear()
+        self.assertIn(response.content, post_test)

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
-from posts.models import Group, Post, User
+from posts.models import Group, Post, User, Comment
 
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
@@ -91,3 +91,36 @@ class PostFormsTest(TestCase):
                 group=self.group.id,
             ).exists()
         )
+
+    def test_comment_can_authorized_user(self):
+        """Комментировать может только авторизованный пользователь."""
+        form_data = {
+            'text': 'Новый комментарий',
+        }
+        response = self.authorized_client.post(
+            reverse((
+                'posts:add_comment'), kwargs={'post_id': f'{self.post.id}'}),
+            data=form_data,
+            follow=True
+        )
+        self.assertRedirects(response, reverse((
+            'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
+        self.assertTrue(
+            Comment.objects.filter(text='Новый комментарий').exists()
+        )
+
+    def test_comment_show_up(self):
+        """Комментарий появляется на странице поста"""
+        comments_count = Comment.objects.count()
+        form_data = {
+            'text': 'Новый комментарий',
+        }
+        response = self.authorized_client.post(
+            reverse((
+                'posts:add_comment'), kwargs={'post_id': f'{self.post.id}'}),
+            data=form_data,
+            follow=True
+        )
+        self.assertRedirects(response, reverse((
+            'posts:post_detail'), kwargs={'post_id': f'{self.post.id}'}))
+        self.assertEqual(Comment.objects.count(), comments_count + 1)
