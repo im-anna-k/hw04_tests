@@ -37,7 +37,7 @@ class Post(models.Model):
         verbose_name='Группа',
         help_text='Выберите группу'
     )
-    image = models.ImageField(
+    image = models.FileField(
         'Картинка',
         upload_to='posts/',
         blank=True

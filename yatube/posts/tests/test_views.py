@@ -1,10 +1,17 @@
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django import forms
+from django.conf import settings
+import tempfile
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from posts.models import Post, Group, User
 
 
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
+
+
+@override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
 class PostPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
@@ -14,10 +21,24 @@ class PostPagesTests(TestCase):
             title='Тестовый заголовок',
             slug='test-slug'
         )
+        cls.gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
+        cls.uploaded = SimpleUploadedFile(
+            name='small.gif',
+            content=cls.gif,
+            content_type='image/gif'
+        )
         cls.post = Post.objects.create(
             author=cls.user,
             text='текст',
-            group=cls.group
+            group=cls.group,
+            image=cls.uploaded
         )
 
     def setUp(self):
@@ -52,6 +73,7 @@ class PostPagesTests(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         first_object = response.context['page_obj'][0]
         self.assertEqual(first_object.text, self.post.text)
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_group_show_correct_context(self):
         """Тест контекста для group_list."""
@@ -61,6 +83,7 @@ class PostPagesTests(TestCase):
         first_object = response.context['page_obj'][0]
         self.assertEqual(first_object.text, self.post.text)
         self.assertEqual(first_object.group, self.post.group)
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_profile_show_correct_context(self):
         """Тест контекста для profile."""
@@ -71,6 +94,7 @@ class PostPagesTests(TestCase):
         first_object = response.context['page_obj'][0]
         self.assertEqual(first_object.text, self.post.text)
         self.assertEqual(first_object.author, self.post.author)
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_detail_show_correct_context(self):
         """Тест контекста для detail."""
@@ -81,6 +105,7 @@ class PostPagesTests(TestCase):
         self.assertEqual(first_object.text, self.post.text)
         self.assertEqual(first_object.author.posts.count(),
                          self.post.author.posts.count())
+        self.assertEqual(first_object.image, self.post.image)
 
     def test_create_show_correct_context(self):
         """Тест контекста для create."""
